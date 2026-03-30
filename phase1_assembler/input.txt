@@ -1,0 +1,10 @@
+addiw x1, x0, 128
+addiw x2, x0, -128
+addiw x3, x0, 3
+srl   x4, x1, x3
+sra   x5, x2, x3
+jal   x6, l1           
+addiw x8, x0, 55      
+addiw x9, x0, 0       
+l1: addiw x7, x0, 99      
+jalr  x0, x6, 0       
