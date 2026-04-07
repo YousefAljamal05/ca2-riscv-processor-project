@@ -2,11 +2,6 @@
 
 This folder contains the Phase 2 implementation of the Computer Architecture (2) final project in Verilog HDL.
 
-## Current progress
-- Verilog environment setup completed
-- PC module implemented
-- PC testbench implemented
-
 ## Planned modules
 - PC
 - Instruction Memory
