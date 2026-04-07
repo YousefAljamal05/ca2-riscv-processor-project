@@ -16,7 +16,7 @@ module instruction_memory (
 );
 
     // Instruction memory: 64K locations, each location is 1 byte
-    reg [7:0] mem [0:65535];
+    reg [7:0] mem [0:65535]; // Every Mem location has a 8-Bit which is = 1 Byte
 
     // Combine 4 consecutive bytes into one 32-bit instruction
     // Little-endian arrangement:
