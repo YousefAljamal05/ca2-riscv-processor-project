@@ -20,11 +20,6 @@ module tb_instruction_memory;
         .instruction(instruction)
     );
 
-    initial begin
-        // Generate waveform file
-        $dumpfile("instruction_memory_wave.vcd");
-        $dumpvars(0, tb_instruction_memory);
-
         // Print header
         $display("Testing Instruction Memory...");
         $display("-------------------------------------------");
