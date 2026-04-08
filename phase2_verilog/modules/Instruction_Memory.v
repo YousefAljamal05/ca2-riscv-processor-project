@@ -1,32 +1,34 @@
 //==========================================================
-// Instruction Memory Module
-// Purpose:
-//   Stores instructions as bytes and returns one 32-bit
-//   instruction based on the current PC address.
+// RV64 Instruction Memory
 //
-// Why byte-addressable?
-//   The project requires Instruction Memory to be 64K x 1 byte.
-//   Since each instruction is 32 bits = 4 bytes, we combine
-//   4 consecutive bytes to form one instruction.
+// Stores instructions as bytes (64K x 1 byte).
+// Each instruction is 32 bits (4 bytes).
+//
+// PC is 64-bit in RV64, but since memory size is 64K,
+// we use only the lower 16 bits of PC for indexing.
 //==========================================================
 
 module instruction_memory (
-    input [31:0] pc,              // Program counter address
-    output [31:0] instruction     // 32-bit instruction output
+    input  [63:0] pc,          // 64-bit Program Counter (RV64)
+    output [31:0] instruction  // 32-bit instruction
 );
 
-    // Instruction memory: 64K locations, each location is 1 byte
-    reg [7:0] mem [0:65535]; // Every Mem location has a 8-Bit which is = 1 Byte
+    // 64K memory locations, each location is 1 byte
+    reg [7:0] mem [0:65535];
+
+    // Even though PC is 64-bit, only the lower 16 bits are used for memory indexing
+    wire [15:0] addr = pc[15:0]; 
 
     // Combine 4 consecutive bytes into one 32-bit instruction
-    // Little-endian arrangement:
-    // mem[pc]     -> lowest byte
-    // mem[pc + 1] -> next byte
-    // mem[pc + 2] -> next byte
-    // mem[pc + 3] -> highest byte
-    assign instruction = {mem[pc + 3], mem[pc + 2], mem[pc + 1], mem[pc]};
+    // Little-endian format
+    assign instruction = {
+        mem[addr + 3],
+        mem[addr + 2],
+        mem[addr + 1],
+        mem[addr]
+    };
 
-    // Initialize memory with some sample instructions
+    // Initialize memory with sample instructions
     initial begin
         // Example instruction 1 = 0x12345678
         mem[0] = 8'h78;
