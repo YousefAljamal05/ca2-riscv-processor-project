@@ -17,8 +17,8 @@ module tb_pc;
     // Testbench signals
     reg clk;                 // Clock signal
     reg reset;               // Reset signal
-    reg [31:0] next_pc;      // Input to the PC module
-    wire [31:0] pc;          // Output from the PC module
+    reg [63:0] next_pc;      // Input to the PC module
+    wire [63:0] pc;          // Output from the PC module
 
     // Instantiate the PC module under test
     pc uut (
@@ -50,17 +50,17 @@ module tb_pc;
         // Initialize signals
         clk = 0;
         reset = 1;           // Start with reset active
-        next_pc = 32'd4;     // Initial next_pc value
+        next_pc = 64'd4;     // Initial next_pc value
 
         // Keep reset active for 10 ns
         #10;
         reset = 0;           // Release reset
 
         // Apply different next_pc values every 10 ns
-        #10 next_pc = 32'd4;
-        #10 next_pc = 32'd8;
-        #10 next_pc = 32'd12;
-        #10 next_pc = 32'd16;
+        #10 next_pc = 64'd4;
+        #10 next_pc = 64'd8;
+        #10 next_pc = 64'd12;
+        #10 next_pc = 64'd16;
 
         // End simulation after some extra time
         #20;
