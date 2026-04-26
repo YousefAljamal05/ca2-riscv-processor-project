@@ -1,49 +1,72 @@
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 
-module tb_alu;
+module tb_ALU;
 
-    reg  [63:0] a;
-    reg  [63:0] b;
-    reg  [3:0]  alu_control;
+    // 1. Declare inputs as regs
+    reg [63:0] A;
+    reg [63:0] B;
+    reg [2:0]  ALUOP;
+
+    // 2. Declare outputs as wires
     wire [63:0] result;
+    wire        ZF;
+    wire        BF;
 
-    alu uut (
-        .a(a),
-        .b(b),
-        .alu_control(alu_control),
-        .result(result)
+    // 3. Instantiate the ALU
+    ALU uut (
+        .A(A), 
+        .B(B), 
+        .ALUOP(ALUOP),
+        .result(result), 
+        .ZF(ZF), 
+        .BF(BF)
     );
 
+    // 4. Test Sequence
     initial begin
+        // Waveform generation
+        $dumpfile("alu_wave.vcd");
+        $dumpvars(0, tb_ALU);
+        
+        // Terminal output monitor
+        $display("Time | OP  | A                    | B                    | Result               | ZF | BF");
+        $display("-----------------------------------------------------------------------------------------");
+        $monitor("%4t | %b | %20d | %20d | %20d |  %b |  %b", $time, ALUOP, A, B, result, ZF, BF);
 
-        $display("===== RV64 ALU TEST =====");
+        // --- TEST CASES ---
+        
+        // 1. ADD (OP: 000)
+        ALUOP = 3'b000; A = 64'd15; B = 64'd10; #10;
+        
+        // 2. SUB (OP: 001) - Normal subtraction
+        ALUOP = 3'b001; A = 64'd20; B = 64'd5;  #10;
+        
+        // 3. SUB (OP: 001) - Test Zero Flag (A == B)
+        ALUOP = 3'b001; A = 64'd10; B = 64'd10; #10;
+        
+        // 4. SUB (OP: 001) - Test Branch Flag (A < B, signed)
+        ALUOP = 3'b001; A = -64'd5; B = 64'd10; #10;
+        
+        // 5. AND (OP: 010)
+        ALUOP = 3'b010; A = 64'b1100; B = 64'b1010; #10;
+        
+        // 6. OR (OP: 011)
+        ALUOP = 3'b011; A = 64'b1100; B = 64'b1010; #10;
+        
+        // 7. XOR (OP: 100)
+        ALUOP = 3'b100; A = 64'b1100; B = 64'b1010; #10;
+        
+        // 8. SRL - Shift Right Logical (OP: 101)
+        ALUOP = 3'b101; A = 64'd16; B = 64'd2; #10;
+        
+        // 9. SRA - Shift Right Arithmetic (OP: 110)
+        ALUOP = 3'b110; A = -64'd16; B = 64'd2; #10;
+        
+        // 10. SLTU - Set Less Than Unsigned (OP: 111)
+        ALUOP = 3'b111; A = 64'd5; B = 64'd25; #10;
 
-        // ADD
-        a = 64'd10; b = 64'd5; alu_control = 4'b0000;
-        #10 $display("ADD: %d", result);
-
-        // SUB
-        alu_control = 4'b0001;
-        #10 $display("SUB: %d", result);
-
-        // MUL
-        a = 64'd6; b = 64'd4; alu_control = 4'b0010;
-        #10 $display("MUL: %d", result);
-
-        // DIV
-        alu_control = 4'b0011;
-        #10 $display("DIV: %d", result);
-
-        // OR
-        a = 64'd12; b = 64'd10; alu_control = 4'b0100;
-        #10 $display("OR:  %d", result);
-
-        // AND
-        alu_control = 4'b0101;
-        #10 $display("AND: %d", result);
-
-        #10;
-        $finish;
+        // End simulation safely
+        #10 $finish;
     end
 
 endmodule
