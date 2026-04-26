@@ -1,0 +1,64 @@
+`timescale 1ns / 1ps
+
+module tb_pc;
+
+    // 1. Declare inputs as regs (so we can control them in initial blocks)
+    reg clk;
+    reg reset;
+    reg [63:0] next_pc;
+
+    // 2. Declare outputs as wires (driven by the module being tested)
+    wire [63:0] pc;
+
+    // 3. Instantiate the Unit Under Test (UUT)
+    pc uut (
+        .clk(clk),
+        .reset(reset),
+        .next_pc(next_pc),
+        .pc(pc)
+    );
+
+    // 4. Clock Generation: Make the clock tick every 5ns (THIS FIXES THE CLOCK)
+    always #5 clk = ~clk;
+
+    // 5. Simulate the datapath calculating PC + 4
+    always @(*) begin
+        // Protect against unknown (x) values during reset
+        if (pc === 64'bx) 
+            next_pc = 64'd4;
+        else
+            next_pc = pc + 64'd4;
+    end
+
+    // 6. Test Sequence and Waveform Generation
+    initial begin
+        // ==========================================
+        // WAVEFORM GENERATION COMMANDS
+        // ==========================================
+        $dumpfile("pc_wave.vcd"); 
+        $dumpvars(0, tb_pc);      
+        // ==========================================
+
+        // Initialize signals (THIS FIXES THE RED 'X' LINES!)
+        clk = 0;
+        reset = 1;
+
+        // Print a clean header to the terminal
+        $display("Time | Rst | PC (Dec) | Next PC (Dec)");
+        $display("---------------------------------------");
+        $monitor("%4t |  %b  | %8d | %13d", $time, reset, pc, next_pc);
+
+        // Hold reset for 10ns to ensure the PC resets properly
+        #10;
+        
+        // Release reset so the PC can start updating on the clock edges
+        reset = 0;
+
+        // Let the simulation run for a few clock cycles to watch it count
+        #50;
+
+        // End simulation safely
+        $finish;
+    end
+
+endmodule
