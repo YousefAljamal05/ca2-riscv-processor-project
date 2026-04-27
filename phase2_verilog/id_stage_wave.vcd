@@ -1,0 +1,191 @@
+$date
+	Mon Apr 27 15:45:36 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module tb_ID_stage $end
+$var wire 1 ! reg_write $end
+$var wire 64 " read_data2 [63:0] $end
+$var wire 64 # read_data1 [63:0] $end
+$var wire 5 $ rd [4:0] $end
+$var wire 1 % mem_write $end
+$var wire 1 & mem_to_reg $end
+$var wire 1 ' mem_read $end
+$var wire 64 ( imm_out [63:0] $end
+$var wire 1 ) alu_src $end
+$var wire 4 * alu_control [3:0] $end
+$var reg 1 + clk $end
+$var reg 32 , instruction [31:0] $end
+$var reg 1 - reg_write_wb $end
+$var reg 64 . write_back_data [63:0] $end
+$var reg 5 / write_reg [4:0] $end
+$scope module uut $end
+$var wire 1 + clk $end
+$var wire 32 0 instruction [31:0] $end
+$var wire 1 - reg_write_wb $end
+$var wire 64 1 write_back_data [63:0] $end
+$var wire 5 2 write_reg [4:0] $end
+$var wire 5 3 rs2 [4:0] $end
+$var wire 5 4 rs1 [4:0] $end
+$var wire 1 ! reg_write $end
+$var wire 64 5 read_data2 [63:0] $end
+$var wire 64 6 read_data1 [63:0] $end
+$var wire 5 7 rd [4:0] $end
+$var wire 1 % mem_write $end
+$var wire 1 & mem_to_reg $end
+$var wire 1 ' mem_read $end
+$var wire 3 8 imm_type [2:0] $end
+$var wire 64 9 imm_out [63:0] $end
+$var wire 1 ) alu_src $end
+$var wire 4 : alu_control [3:0] $end
+$scope module CU $end
+$var wire 32 ; instruction [31:0] $end
+$var wire 7 < opcode [6:0] $end
+$var wire 3 = funct3 [2:0] $end
+$var wire 1 > bit30 $end
+$var parameter 7 ? BRANCH $end
+$var parameter 7 @ I_TYPE $end
+$var parameter 7 A LOAD $end
+$var parameter 7 B R_TYPE $end
+$var parameter 7 C STORE $end
+$var reg 4 D alu_control [3:0] $end
+$var reg 1 ) alu_src $end
+$var reg 3 E imm_type [2:0] $end
+$var reg 1 ' mem_read $end
+$var reg 1 & mem_to_reg $end
+$var reg 1 % mem_write $end
+$var reg 1 ! reg_write $end
+$upscope $end
+$scope module IG $end
+$var wire 3 F imm_type [2:0] $end
+$var wire 32 G instruction [31:0] $end
+$var reg 64 H imm_out [63:0] $end
+$upscope $end
+$scope module RF $end
+$var wire 1 + clk $end
+$var wire 5 I rd [4:0] $end
+$var wire 64 J read_data1 [63:0] $end
+$var wire 64 K read_data2 [63:0] $end
+$var wire 1 - reg_write $end
+$var wire 5 L rs1 [4:0] $end
+$var wire 5 M rs2 [4:0] $end
+$var wire 64 N write_data [63:0] $end
+$var integer 32 O i [31:0] $end
+$upscope $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+b100011 C
+b110011 B
+b11 A
+b10011 @
+b1100011 ?
+$end
+#0
+$dumpvars
+b100000 O
+b0 N
+b0 M
+b0 L
+b0 K
+b0 J
+b0 I
+b0 H
+b0 G
+b0 F
+b0 E
+b0 D
+0>
+b0 =
+b0 <
+b0 ;
+b0 :
+b0 9
+b0 8
+b0 7
+b0 6
+b0 5
+b0 4
+b0 3
+b0 2
+b0 1
+b0 0
+b0 /
+b0 .
+0-
+b0 ,
+0+
+b0 *
+0)
+b0 (
+0'
+0&
+0%
+b0 $
+b0 #
+b0 "
+0!
+$end
+#5000
+1+
+#10000
+b1 4
+b1 L
+b10 3
+b10 M
+b101 $
+b101 7
+b10 (
+b10 9
+b10 H
+0+
+b1000001000001010000000 ,
+b1000001000001010000000 0
+b1000001000001010000000 ;
+b1000001000001010000000 G
+#15000
+1+
+#20000
+0+
+b11011110101011011011111011101111 .
+b11011110101011011011111011101111 1
+b11011110101011011011111011101111 N
+b101 /
+b101 2
+b101 I
+1-
+#25000
+1+
+#30000
+b11011110101011011011111011101111 #
+b11011110101011011011111011101111 6
+b11011110101011011011111011101111 J
+b101 4
+b101 L
+b0 3
+b0 M
+b0 $
+b0 7
+b0 (
+b0 9
+b0 H
+0+
+b101000000000000000 ,
+b101000000000000000 0
+b101000000000000000 ;
+b101000000000000000 G
+0-
+#35000
+1+
+#40000
+0+
+#45000
+1+
+#50000
+0+
