@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module alu_tb;
+module EX_tb;
 
     // ----------------------------------------------------
     // 1. Signals Declaration
@@ -18,7 +18,7 @@ module alu_tb;
     // ----------------------------------------------------
     // 2. Instantiate the ALU
     // ----------------------------------------------------
-    alu uut (
+    EX_Stage uut (
         .current_pc (current_pc),
         .reg_a      (reg_a),
         .reg_b      (reg_b),
