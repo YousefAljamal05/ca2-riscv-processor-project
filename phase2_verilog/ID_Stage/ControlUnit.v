@@ -3,7 +3,7 @@
 //==========================================================
 // Function: 
 //   Reads the 32-bit instruction and tells the rest of the 
-//   CPU what to do by turning specific "control wires" on (1) or off (0).
+//   CPU what to do based on the CUSTOM project opcode table.
 //==========================================================
 
 module ControlUnit (
@@ -18,21 +18,21 @@ module ControlUnit (
 );
 
     // 1. Extract the important parts of the instruction
-    wire [6:0] opcode = instruction[6:0];   // Tells us the type of instruction (ADD, LOAD, STORE)
-    wire [2:0] funct3 = instruction[14:12]; // Gives more specific details
-    wire bit30        = instruction[30];    // Helps tell the difference between ADD and SUB
+    wire [6:0] opcode = instruction[6:0];   
+    wire [2:0] funct3 = instruction[14:12]; 
+    wire [6:0] funct7 = instruction[31:25]; 
 
-    // 2. Define the RISC-V Opcodes (makes the code readable)
-    localparam R_TYPE = 7'b0110011; // add, sub, and, or
-    localparam I_TYPE = 7'b0010011; // addi
-    localparam LOAD   = 7'b0000011; // lw
-    localparam STORE  = 7'b0100011; // sw
-    localparam BRANCH = 7'b1100011; // beq
+    // 2. Define the Custom Opcodes (from the provided Image in HEX)
+    localparam OPCODE_R     = 7'h34; // Addw, And, Xor, Or, sltu, srl, sra
+    localparam OPCODE_I_LW  = 7'h14; // Addiw, Andi, Ori AND Load Word (Lw)
+    localparam OPCODE_S     = 7'h24; // sw
+    localparam OPCODE_SB    = 7'h64; // bge, bne
+    localparam OPCODE_UJ    = 7'h70; // jal
+    localparam OPCODE_JALR  = 7'h68; // jalr
 
-    // 3. Determine the output signals based on the opcode
+    // 3. Determine the output signals based on the custom table
     always @(*) begin
-        // DEFAULT VALUES: We set everything to 0 first. 
-        // This is a Verilog trick to prevent hardware bugs called "latches".
+        // DEFAULT VALUES: Prevent hardware latches
         reg_write   = 0;
         mem_read    = 0;
         mem_write   = 0;
@@ -41,51 +41,70 @@ module ControlUnit (
         alu_control = 4'b0000; 
         imm_type    = 3'b000;
 
-        // Turn on specific signals based on the instruction
         case (opcode)
             
-            R_TYPE: begin
-                reg_write = 1;       // We are writing a result to a register
-                // alu_src stays 0 because we are using two registers, not an immediate
+            OPCODE_R: begin
+                reg_write = 1;       // Writing result to a register
+                alu_src   = 0;       // Use two registers (rs1, rs2)
                 
-                // Determine exact ALU math operation
-                if (funct3 == 3'b000 && bit30 == 1'b1)
-                    alu_control = 4'b0110; // SUB
-                else if (funct3 == 3'b000)
-                    alu_control = 4'b0010; // ADD
-                else if (funct3 == 3'b111)
-                    alu_control = 4'b0000; // AND
-                else if (funct3 == 3'b110)
-                    alu_control = 4'b0001; // OR
+                // Determine exact ALU math operation using custom funct3/funct7
+                if      (funct3 == 3'h1 && funct7 == 7'h10) alu_control = 4'b0000; // ADD (Addw)
+                else if (funct3 == 3'h0 && funct7 == 7'h10) alu_control = 4'b0001; // AND
+                else if (funct3 == 3'h7 && funct7 == 7'h10) alu_control = 4'b0010; // OR
+                else if (funct3 == 3'h5 && funct7 == 7'h10) alu_control = 4'b0011; // XOR
+                else if (funct3 == 3'h4 && funct7 == 7'h01) alu_control = 4'b0100; // SLTU
+                else if (funct3 == 3'h6 && funct7 == 7'h10) alu_control = 4'b0101; // SRL
+                else if (funct3 == 3'h6 && funct7 == 7'h30) alu_control = 4'b0110; // SRA
             end
 
-            I_TYPE: begin
-                reg_write = 1;       // We write the result back to a register
-                alu_src   = 1;       // The ALU needs to use the Immediate value
-                imm_type  = 3'b000;  // Tell ImmGen to generate an I-Type Immediate
-                alu_control = 4'b0010; // ADD (for ADDI)
+            OPCODE_I_LW: begin
+                reg_write = 1;       
+                alu_src   = 1;       // ALU uses the Immediate value
+                
+                // CRITICAL: Since Lw and I-Type ALU share Opcode 14, we check funct3
+                if (funct3 == 3'h3) begin
+                    // It is a Load Word (Lw)
+                    mem_read    = 1;
+                    mem_to_reg  = 1;       // Data comes from MEMORY
+                    imm_type    = 3'b000;  // I-Type Immediate
+                    alu_control = 4'b0000; // ADD (Base + offset)
+                end else begin
+                    // It is an ALU Immediate (Addiw, Andi, Ori)
+                    mem_to_reg  = 0;       // Data comes from ALU
+                    imm_type    = 3'b000;  // I-Type Immediate
+                    
+                    if      (funct3 == 3'h1) alu_control = 4'b0000; // Addiw
+                    else if (funct3 == 3'h0) alu_control = 4'b0001; // Andi
+                    else if (funct3 == 3'h7) alu_control = 4'b0010; // Ori
+                end
             end
 
-            LOAD: begin
-                reg_write  = 1;      // We are saving memory data into a register
-                mem_read   = 1;      // We need to read from Data Memory
-                alu_src    = 1;      // ALU uses Immediate for address calculation
-                mem_to_reg = 1;      // The data going to the register comes from MEMORY, not the ALU
-                imm_type   = 3'b000; // I-Type Immediate
-                alu_control = 4'b0010; // ADD (Base address + offset)
+            OPCODE_S: begin // sw
+                mem_write   = 1;       // Writing data TO Data Memory
+                alu_src     = 1;       // ALU uses Immediate
+                imm_type    = 3'b001;  // S-Type Immediate
+                alu_control = 4'b0000; // ADD (Base + offset)
             end
 
-            STORE: begin
-                mem_write = 1;       // We are writing data TO Data Memory
-                alu_src   = 1;       // ALU uses Immediate for address calculation
-                imm_type  = 3'b001;  // Tell ImmGen to generate an S-Type Immediate
-                alu_control = 4'b0010; // ADD (Base address + offset)
+            OPCODE_SB: begin // bge, bne
+                alu_src     = 0;       // Compare rs1 and rs2
+                imm_type    = 3'b010;  // B-Type Immediate
+                
+                if      (funct3 == 3'h6) alu_control = 4'b0111; // BGE
+                else if (funct3 == 3'h2) alu_control = 4'b1000; // BNE
             end
 
-            BRANCH: begin
-                // No registers or memory are written
-                imm_type  = 3'b010;  // Tell ImmGen to generate a B-Type Immediate
-                alu_control = 4'b0110; // SUB (Subtract to compare the two registers)
+            OPCODE_UJ: begin // jal
+                reg_write   = 1;
+                imm_type    = 3'b011;  // UJ-Type Immediate
+                alu_control = 4'b1001; // JAL Command
+            end
+
+            OPCODE_JALR: begin // jalr
+                reg_write   = 1;
+                alu_src     = 1;
+                imm_type    = 3'b000;  // I-Type Immediate
+                alu_control = 4'b1010; // JALR Command
             end
 
         endcase
