@@ -1,44 +1,34 @@
 //==========================================================
-// IF STAGE (Instruction Fetch)
+// IF/ID PIPELINE REGISTER
 //==========================================================
 // Function:
-//   - Holds PC
-//   - Fetches instruction from memory
-//   - Computes next PC (PC + 4)
-//
-// Datapath:
-//   PC → Instruction Memory → Instruction
-//   PC + 4 → next PC
+//   Acts as a barrier between the Fetch and Decode stages.
+//   Captures the PC and Instruction on the rising clock edge
+//   and passes them safely to the ID stage.
 //==========================================================
 
-module IF_stage (
-    input clk,
-    input reset,
-
-    output [63:0] pc_out,
-    output [31:0] instruction_out
+module IF_ID (
+    input wire clk,
+    input wire reset,
+    
+    // Inputs from IF Stage
+    input wire [63:0] pc_in,
+    input wire [31:0] instruction_in,
+    
+    // Outputs to ID Stage
+    output reg [63:0] pc_out,
+    output reg [31:0] instruction_out
 );
 
-    wire [63:0] pc_current;
-    wire [63:0] pc_next;
-
-    // PC Register
-    pc PC (
-        .clk(clk),
-        .reset(reset),
-        .next_pc(pc_next),
-        .pc(pc_current)
-    );
-
-    // Instruction Memory
-    instruction_memory IM (
-        .pc(pc_current),
-        .instruction(instruction_out)
-    );
-
-    // Sequential execution (no branching yet)
-    assign pc_next = pc_current + 64'd4;
-
-    assign pc_out = pc_current;
+    always @(posedge clk) begin
+        if (reset) begin
+            pc_out          <= 64'd0;
+            // 0x00000013 is the standard RISC-V NOP (addi x0, x0, 0)
+            instruction_out <= 32'h00000013; 
+        end else begin
+            pc_out          <= pc_in;
+            instruction_out <= instruction_in;
+        end
+    end
 
 endmodule
