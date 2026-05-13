@@ -21,9 +21,7 @@ module data_memory (
     //======================================================
     // STORAGE ARRAY
     //======================================================
-    // This creates the actual memory bank. It is an array of 256 "slots" 
-    // (from index 0 to 255), and each slot is exactly 64 bits wide.
-    reg [63:0] mem [0:255]; 
+    reg [7:0] memory [0:8191];
 
     //======================================================
     // WRITE LOGIC (Synchronous)
