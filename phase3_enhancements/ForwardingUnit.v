@@ -1,36 +1,36 @@
+//==========================================================================
+//  FORWARDING UNIT
+//   Resolves EX & MEM data hazards by selecting where each ALU operand
+//   actually comes from this cycle:
+//      00 -> from ID/EX  (normal register read)
+//      10 -> from EX/MEM (1-cycle-old ALU result)
+//      01 -> from MEM/WB (2-cycle-old write-back value)
+//==========================================================================
 module ForwardingUnit (
-    input wire [4:0] rs1_ID_EX,
-    input wire [4:0] rs2_ID_EX,
-    
-    input wire [4:0] rd_EX_MEM,
-    input wire reg_write_EX_MEM,
-    
-    input wire [4:0] rd_MEM_WB,
-    input wire reg_write_MEM_WB,
-    
-    output reg [1:0] forward_a,
-    output reg [1:0] forward_b
+    input  [4:0] id_ex_rs1,
+    input  [4:0] id_ex_rs2,
+    input  [4:0] ex_mem_rd,
+    input        ex_mem_reg_write,
+    input  [4:0] mem_wb_rd,
+    input        mem_wb_reg_write,
+    output reg [1:0] forwardA,
+    output reg [1:0] forwardB
 );
-
     always @(*) begin
-        // Default: no forwarding (use data from ID/EX)
-        forward_a = 2'b00;
-        forward_b = 2'b00;
+        // -------- ForwardA (operand from rs1) --------
+        if (ex_mem_reg_write && (ex_mem_rd != 5'd0) && (ex_mem_rd == id_ex_rs1))
+            forwardA = 2'b10;   // EX hazard
+        else if (mem_wb_reg_write && (mem_wb_rd != 5'd0) && (mem_wb_rd == id_ex_rs1))
+            forwardA = 2'b01;   // MEM hazard
+        else
+            forwardA = 2'b00;
 
-        // EX Hazard (ALU-ALU Forwarding)
-        if (reg_write_EX_MEM && (rd_EX_MEM != 0) && (rd_EX_MEM == rs1_ID_EX))
-            forward_a = 2'b10;
-        if (reg_write_EX_MEM && (rd_EX_MEM != 0) && (rd_EX_MEM == rs2_ID_EX))
-            forward_b = 2'b10;
-
-        // MEM Hazard (Double Data Forwarding)
-        // Only forward from MEM/WB if we aren't ALREADY forwarding from EX/MEM
-        if (reg_write_MEM_WB && (rd_MEM_WB != 0) && (rd_MEM_WB == rs1_ID_EX) &&
-            !(reg_write_EX_MEM && (rd_EX_MEM != 0) && (rd_EX_MEM == rs1_ID_EX)))
-            forward_a = 2'b01;
-            
-        if (reg_write_MEM_WB && (rd_MEM_WB != 0) && (rd_MEM_WB == rs2_ID_EX) &&
-            !(reg_write_EX_MEM && (rd_EX_MEM != 0) && (rd_EX_MEM == rs2_ID_EX)))
-            forward_b = 2'b01;
+        // -------- ForwardB (operand from rs2) --------
+        if (ex_mem_reg_write && (ex_mem_rd != 5'd0) && (ex_mem_rd == id_ex_rs2))
+            forwardB = 2'b10;
+        else if (mem_wb_reg_write && (mem_wb_rd != 5'd0) && (mem_wb_rd == id_ex_rs2))
+            forwardB = 2'b01;
+        else
+            forwardB = 2'b00;
     end
 endmodule
